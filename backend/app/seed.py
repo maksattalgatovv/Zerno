@@ -43,7 +43,7 @@ FIELDS = [
         "zones": {"nw": 0.61, "ne": 0.57, "sw": 0.47, "se": 0.43},
     },
     {
-        "name": "field.east", "area": 55, "crop": "barley", "days_planted": 63, "ndvi": 0.36,
+        "name": "field.east", "area": 55, "crop": "barley", "days_planted": 72, "ndvi": 0.36,
         "start": 0.57, "corners": [(560, 760), (1230, 780), (1260, -40), (540, -60)],
         "zones": {"nw": 0.46, "ne": 0.33, "sw": 0.41, "se": 0.28},
     },
