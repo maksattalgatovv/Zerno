@@ -47,7 +47,7 @@ def sample_ndvi_grid(field: m.Field, on: date) -> np.ndarray:
     for anomaly in field.anomalies:
         if anomaly.status == "open":
             cx, cy = to_pixel(anomaly.latitude, anomaly.longitude)
-            drop = 0.32 if anomaly.severity == "critical" else 0.2
+            drop = 0.16 if anomaly.severity == "critical" else 0.12
             target -= drop * np.exp(-((xx - cx) ** 2 + (yy - cy) ** 2) / (2 * 3.5**2))
     target = np.clip(target, 0.05, 0.9)
 

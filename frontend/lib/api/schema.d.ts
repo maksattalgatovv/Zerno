@@ -1750,7 +1750,7 @@ export interface components {
             /** Name */
             name?: string | null;
             /** Role */
-            role?: ("farmer" | "agronomist" | "admin") | null;
+            role?: ("farmer" | "agronomist") | null;
             /** Language */
             language?: ("en" | "ru" | "kk") | null;
             /** Units */

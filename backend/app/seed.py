@@ -79,7 +79,7 @@ def _curve(start: float, end: float, step: int, wiggle_seed: int) -> float:
 def _add_history(db: Session, field: m.Field, spec: dict, index: int, today: date) -> None:
     final = field.ndvi_mean
     for step in range(WEEKS):
-        day = today - timedelta(days=(WEEKS - 1 - step) * 7 + index)
+        day = today - timedelta(days=(WEEKS - 1 - step) * 7 + 1)
         field.ndvi_mean = _curve(spec["start"], spec["ndvi"], step, index)
         stats = summarize_ndvi(sample_ndvi_grid(field, day))
         stats["mean"] = field.ndvi_mean

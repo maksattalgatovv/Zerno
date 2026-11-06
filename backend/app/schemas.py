@@ -75,7 +75,7 @@ class UserOut(Orm):
 
 class UserUpdate(BaseModel):
     name: str | None = F(default=None, min_length=2, max_length=120)
-    role: Literal["farmer", "agronomist", "admin"] | None = None
+    role: Literal["farmer", "agronomist"] | None = None  # admin is never self-assigned
     language: Language | None = None
     units: Literal["metric", "imperial"] | None = None
     notification_prefs: NotificationPrefs | None = None
