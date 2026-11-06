@@ -1,0 +1,6 @@
+# Optional: real computer-vision stack for app/adapters/vision/yolo.py.
+# Not installed by default (several GB). Requires trained crop-disease weights;
+# set VISION_MODEL=yolo and YOLO_WEIGHTS_PATH in backend/.env.
+-r requirements.txt
+torch>=2.4
+ultralytics>=8.3

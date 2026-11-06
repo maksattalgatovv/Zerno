@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.local
+!.env.example
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+
+# Local storage (uploads, generated reports)
+backend/storage/
+
+# Logs and OS noise
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+
+# The empty OneDrive placeholder that existed before this project
+/Zerno
