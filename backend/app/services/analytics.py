@@ -31,6 +31,7 @@ def farm_stats(farm: m.Farm) -> schemas.StatsOut:
         field_count=len(fields),
         avg_ndvi=round(sum(n * a for n, a in observed) / area, 2) if area else None,
         open_anomalies=sum(1 for f in fields for a in f.anomalies if a.status == "open"),
+        livestock_total=sum(g.head_count for g in farm.livestock_groups),
     )
 
 

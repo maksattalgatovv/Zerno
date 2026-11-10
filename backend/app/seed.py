@@ -21,6 +21,7 @@ from app.db.session import SessionLocal
 from app.domain.flight import estimate_flight
 from app.domain.geo import METERS_PER_DEG_LAT, LatLng, centroid, polygon_area_ha, split_quad
 from app.domain.ndvi import classify_ndvi, summarize_ndvi
+from app.services.livestock import apply_event
 from app.services.sample_data import sample_ndvi_grid, sample_photo
 
 log = logging.getLogger("zerno.seed")
@@ -47,7 +48,13 @@ FIELDS = [
         "start": 0.57, "corners": [(560, 760), (1230, 780), (1260, -40), (540, -60)],
         "zones": {"nw": 0.46, "ne": 0.33, "sw": 0.41, "se": 0.28},
     },
+    {
+        "name": "field.pasture", "area": 70, "crop": "pasture", "days_planted": None, "ndvi": 0.63,
+        "start": 0.55, "corners": [(-900, -800), (300, -780), (320, -1500), (-880, -1520)],
+        "zones": {"nw": 0.66, "ne": 0.64, "sw": 0.61, "se": 0.6},
+    },
 ]
+PASTURE = 3
 
 # field index, zone, type, severity, area_ha, days ago, resolved
 ANOMALIES = [
@@ -58,6 +65,17 @@ ANOMALIES = [
     (2, "nw", "weeds", "warning", 1.6, 12, True),
     (0, "se", "weeds", "warning", 0.9, 16, True),
 ]
+
+# species, name, on the pasture?, starting count, then (kind, quantity, days ago) in date order.
+# A drone_count entry is filled in from a seeded counting flight on that day.
+HERDS = [
+    ("cattle", "herd.dairy", True, 64, [("birth", 5, 40), ("drone_count", 69, 22), ("sale", 3, 21), ("birth", 2, 6)]),
+    ("cattle", "herd.beef", True, 48, [("purchase", 12, 30), ("drone_count", 60, 22), ("sale", 8, 9)]),
+    ("sheep", "herd.sheep", True, 310, [("birth", 46, 35), ("drone_count", 353, 22), ("death", 2, 18), ("sale", 20, 4)]),
+    ("horse", "herd.horses", True, 22, [("birth", 3, 25), ("drone_count", 25, 22)]),
+    ("poultry", "herd.hens", False, 180, [("purchase", 40, 14), ("recount", 214, 2)]),
+]
+COUNT_FLIGHT_DAYS = 22
 
 
 def _polygon(corners: list[tuple[float, float]], area_ha: float) -> list[LatLng]:
@@ -90,7 +108,7 @@ def _add_history(db: Session, field: m.Field, spec: dict, index: int, today: dat
 def _seed_mission(db: Session, drone: m.Drone, field: m.Field, days_ago: int, *,
                   status: str = "completed", altitude: float = 60, photos: int = 3,
                   return_reason: str | None = None, progress: float = 1.0,
-                  owner: m.User) -> m.DroneMission:
+                  owner: m.User, purpose: str = "survey") -> m.DroneMission:
     polygon = [tuple(p) for p in field.coordinates]
     home = (drone.home_lat, drone.home_lng)
     estimate = estimate_flight(polygon, home, altitude)
@@ -102,7 +120,7 @@ def _seed_mission(db: Session, drone: m.Drone, field: m.Field, days_ago: int, *,
         started_at=started,
         completed_at=started + timedelta(minutes=estimate.duration_min * progress),
         flight_data={
-            "simulated": True, "route": [list(p) for p in estimate.route], "home": list(home),
+            "purpose": purpose, "simulated": True, "route": [list(p) for p in estimate.route], "home": list(home),
             "altitude_m": altitude, "distance_m": estimate.distance_m,
             "duration_min": estimate.duration_min, "battery_needed": estimate.battery_needed,
             "preflight": [], "track": [], "progress": progress, "phase": "landed",
@@ -188,10 +206,10 @@ def seed_demo(db: Session) -> m.User:
             farm_id=farm.id, name=spec["name"], region=REGION, area=spec["area"],
             crop_type=spec["crop"], coordinates=[list(p) for p in polygon],
             center_lat=round(center[0], 6), center_lng=round(center[1], 6),
-            planting_date=today - timedelta(days=spec["days_planted"]),
+            planting_date=today - timedelta(days=spec["days_planted"]) if spec["days_planted"] else None,
             last_monitored_at=now - timedelta(days=index + 1),
             health_status=classify_ndvi(spec["ndvi"]), ndvi_mean=spec["ndvi"],
-            created_at=now - timedelta(days=spec["days_planted"] + 3),
+            created_at=now - timedelta(days=(spec["days_planted"] or 120) + 3),
         )
         db.add(field)
         for zone_name, quad in split_quad(polygon).items():
@@ -240,6 +258,30 @@ def seed_demo(db: Session) -> m.User:
     _seed_analysis(db, owner, fields[1], 2, {"green": 0.6, "yellow": 0.36, "brown": 0.04},
                    ("approved", "Soil sample booked for this week."))
     _seed_analysis(db, owner, fields[2], 1, {"green": 0.52, "yellow": 0.1, "brown": 0.38}, None)
+
+    count_flight = _seed_mission(db, scout, fields[PASTURE], COUNT_FLIGHT_DAYS, owner=owner, photos=2,
+                                 purpose="livestock")
+    counts = []
+    for species, name, on_pasture, start, history in HERDS:
+        group = m.LivestockGroup(farm_id=farm.id, species=species, name=name,
+                                 field_id=fields[PASTURE].id if on_pasture else None,
+                                 created_at=now - timedelta(days=60))
+        db.add(group)
+        db.flush()
+        apply_event(group, "recount", start).created_at = now - timedelta(days=60)
+        for kind, quantity, days in history:
+            if kind == "drone_count":
+                expected = group.head_count
+                event = apply_event(group, kind, quantity, mission_id=count_flight.id, confidence=0.93,
+                                    is_simulated=True)
+                counts.append({"group_id": group.id, "group_name": name, "species": species,
+                               "expected": expected, "counted": quantity, "confidence": 0.93})
+            else:
+                event = apply_event(group, kind, quantity)
+            event.created_at = now - timedelta(days=days)
+        group.updated_at = now - timedelta(days=history[-1][2])
+    count_flight.flight_data = {**count_flight.flight_data, "livestock_counts": counts}
+    db.flush()
 
     def add_notice(title: str, message: str, severity: str, days: float, *, params: dict | None = None,
                    link: str | None = None, read: bool = False) -> None:

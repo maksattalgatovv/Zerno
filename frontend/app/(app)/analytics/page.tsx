@@ -68,7 +68,13 @@ function Content({ farm }: { farm: Farm }) {
         <NdviTrendChart series={data.series} data={data.trend} />
       </Panel>
       <NdviMapPanel farm={farm} />
-      <div className="space-y-4">
+      <Panel title={t("analytics.comparison")} hint={t("analytics.comparisonHint")}>
+        <FieldComparisonChart data={data.fields} labels={{ healthy: t("health.healthy"), attention: t("health.attention"), critical: t("health.critical") }} />
+      </Panel>
+      <details className="rounded-lg border bg-card p-5 lg:col-span-2">
+        <summary className="cursor-pointer font-medium">{t("common.more")}</summary>
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+          <div className="space-y-4">
         <Panel title={t("analytics.distribution")} hint={t("analytics.distributionHint")}>
           <HealthDonut data={data.health} total={format.area(totalArea)} />
         </Panel>
@@ -79,11 +85,8 @@ function Content({ farm }: { farm: Farm }) {
           </div>
           <CountBars data={data.anomalies_by_type} />
         </Panel>
-      </div>
-      <Panel title={t("analytics.comparison")} hint={t("analytics.comparisonHint")}>
-        <FieldComparisonChart data={data.fields} labels={{ healthy: t("health.healthy"), attention: t("health.attention"), critical: t("health.critical") }} />
-      </Panel>
-      <Panel title={t("analytics.history")}>
+          </div>
+          <Panel title={t("analytics.history")}>
         <div className="max-h-72 overflow-y-auto">
           <table className="w-full text-left">
             <thead className="sticky top-0 bg-card text-sm text-muted-foreground">
@@ -102,6 +105,8 @@ function Content({ farm }: { farm: Farm }) {
           </table>
         </div>
       </Panel>
+        </div>
+      </details>
     </div>
   );
 }

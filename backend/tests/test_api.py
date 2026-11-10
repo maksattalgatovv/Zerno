@@ -95,7 +95,7 @@ class TestDemoAccess:
         headers = {"Authorization": f"Bearer {token}"}
         farms = client.get("/api/farms", headers=headers).json()
         assert farms[0]["name"] == "ZERNO Demo Farm"
-        assert farms[0]["total_area"] == 250
+        assert farms[0]["total_area"] == 320  # three crop fields and the pasture
         assert farms[0]["field_count"] >= 3
         dashboard = client.get(f"/api/farms/{farms[0]['id']}/dashboard", headers=headers).json()
         assert dashboard["weather"]["is_demo"] is True

@@ -259,17 +259,15 @@ function SettingsPage() {
       <Tabs defaultValue={params.get("tab") ?? "profile"}>
         <div className="mb-4 overflow-x-auto">
           <TabsList>
-            {(["profile", "preferences", "notifications", "farms", "integrations", "system"] as const).map((tab) => (
+            {(["profile", "preferences", "farms", "system"] as const).map((tab) => (
               <TabsTrigger key={tab} value={tab}>{t(`settings.tab.${tab}` as TKey)}</TabsTrigger>
             ))}
           </TabsList>
         </div>
         <TabsContent value="profile"><ProfileTab user={user} /></TabsContent>
-        <TabsContent value="preferences"><PreferencesTab user={user} /></TabsContent>
-        <TabsContent value="notifications"><NotificationsTab user={user} /></TabsContent>
+        <TabsContent value="preferences" className="space-y-4"><PreferencesTab user={user} /><NotificationsTab user={user} /></TabsContent>
         <TabsContent value="farms"><FarmsTab /></TabsContent>
-        <TabsContent value="integrations"><IntegrationsTab user={user} /></TabsContent>
-        <TabsContent value="system"><SystemTab /></TabsContent>
+        <TabsContent value="system" className="space-y-4"><IntegrationsTab user={user} /><SystemTab /></TabsContent>
       </Tabs>
     </>
   );

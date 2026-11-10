@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
@@ -13,7 +13,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "ZERNO · Smart Agriculture. Smarter Future.",
   description: "AI-powered smart agriculture platform for farmers in Kazakhstan.",
+  appleWebApp: { capable: true, title: "ZERNO", statusBarStyle: "default" },
+  icons: { apple: "/apple-touch-icon.png" },
 };
+
+export const viewport: Viewport = { themeColor: "#174C38", viewportFit: "cover" };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

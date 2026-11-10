@@ -47,9 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = useCallback(() => {
     setToken(null);
     client.clear();
-    // A full page load, so the app's sign-in guard can't redirect to /login first.
+    // To sign-in, not the start page, which would open the demo again. A full load drops all app state.
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-    window.location.assign("/");
+    window.location.assign("/login");
   }, [client]);
 
   const updateMutation = useMutation({

@@ -63,6 +63,12 @@ Safety rules live in `domain/flight.py` and `services/missions.authorize_start`,
 
 **Limitation:** `MissionRunner` keeps tasks in one process. On startup, missions left active are marked failed. Running several API workers would need a shared queue such as Redis.
 
+## Emergency flow
+
+`POST /emergencies` commits the incident first, then marks a fire on the map, creates an urgent notification that ignores notification preferences, and can send a drone. Drone trouble is logged and never fails the alarm.
+
+Emergency flights use the normal `authorize_start` gate. The result is written to the incident timeline, and only a person can close an incident: no flight outcome does. The app has no link to emergency services, so the interface always tells the user to call them. Calls and SMS use `tel:` and `sms:` links, which the person completes on the phone.
+
 ## Crop analysis flow
 
 `POST /images` checks the file's real content and size, then stores it. `POST /analyses` runs `get_vision_model().analyze()`, which returns a `VisionResult`. `POST /analyses/{id}/actions` saves the farmer's decision once.
@@ -83,7 +89,11 @@ Keys under `public/` are served at `/media` by unguessable filenames. Keys under
 
 ## Data model
 
-Core entities match the product spec: User, Farm, Field, Drone, DroneMission, Image, AIAnalysis, Notification, FarmerAction. Added to support the features: Zone, Anomaly, NdviRecord, ChatMessage, Report, PasswordResetToken.
+Core entities match the product spec: User, Farm, Field, Drone, DroneMission, Image, AIAnalysis, Notification, FarmerAction. Added to support the features: Zone, Anomaly, NdviRecord, ChatMessage, Report, PasswordResetToken, Emergency, LivestockGroup, LivestockEvent.
+
+A livestock group can be assigned to a pasture. A mission planned with `purpose: "livestock"` flies over that field, and when it completes, `ingest_results` calls `livestock.count_from_flight`, which writes a `drone_count` event for every group on the field, with the mission and the detector's confidence. Only a completed flight counts, because a partial one would miss animals. The number itself comes from `simulated_count` until a trained livestock detector is connected. A drone can't tell why a number changed, so births, purchases, sales and deaths stay manual.
+
+A livestock group's `head_count` only changes through `services/livestock.apply_event`, which writes a `LivestockEvent` (birth, purchase, sale, death or recount) with the signed change and the new total. The count can't go below zero, and editing a group never touches its count, so the history always adds up to the current number.
 
 Deleting a user or farm cascades through the database. Images and analyses keep existing if their field is deleted, with the link set to null.
 

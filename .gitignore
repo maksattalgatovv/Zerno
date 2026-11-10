@@ -29,3 +29,7 @@ desktop.ini
 
 # The empty OneDrive placeholder that existed before this project
 /Zerno
+
+# Personal editor and assistant settings
+.claude/
+*.code-workspace

@@ -73,6 +73,40 @@ export function MissionDialog({ id, farmId, onClose }: { id: string | null; farm
                 <div key={label}><dt className="text-sm text-muted-foreground">{label}</dt><dd className="font-semibold">{value}</dd></div>
               ))}
             </dl>
+            {mission.purpose === "livestock" && (
+              <div>
+                <h3 className="mb-2 font-medium">{t("drone.countResult")}</h3>
+                {mission.livestock_counts.length === 0 ? <p className="text-muted-foreground">{t("drone.countNone")}</p> : (
+                  <table className="w-full text-sm">
+                    <thead className="text-left text-muted-foreground">
+                      <tr>
+                        <th className="py-1.5 font-normal">{t("livestock.name")}</th>
+                        <th className="py-1.5 text-right font-normal">{t("drone.countExpected")}</th>
+                        <th className="py-1.5 text-right font-normal">{t("drone.countCounted")}</th>
+                        <th className="py-1.5 text-right font-normal">{t("drone.countConfidence")}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y border-t">
+                      {mission.livestock_counts.map((c) => {
+                        const diff = c.counted - c.expected;
+                        return (
+                          <tr key={c.group_id}>
+                            <td className="py-2">{c.group_name}</td>
+                            <td className="py-2 text-right tabular-nums">{format.number(c.expected)}</td>
+                            <td className="py-2 text-right font-semibold tabular-nums">
+                              {format.number(c.counted)}
+                              {diff !== 0 && <span className={diff < 0 ? "ml-1 text-danger" : "ml-1 text-warn-ink"}>({diff > 0 ? "+" : "−"}{Math.abs(diff)})</span>}
+                            </td>
+                            <td className="py-2 text-right tabular-nums">{format.number(c.confidence * 100)}%</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
+                {mission.is_simulated && <p className="mt-2 text-xs text-muted-foreground">{t("drone.countSim")}</p>}
+              </div>
+            )}
             {mission.return_reason && (
               <p className="rounded bg-warn-tint px-3 py-2 text-warn-ink">{t(`drone.reason.${mission.return_reason}` as TKey)}</p>
             )}

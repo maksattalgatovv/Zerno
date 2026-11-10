@@ -18,6 +18,9 @@ import type { Token } from "@/lib/api/types";
 import { useAuth } from "@/providers/auth-provider";
 import { useT } from "@/providers/i18n-provider";
 
+/** Only same-site paths, so a crafted link can't send the visitor elsewhere after sign-in. */
+const safeNext = (value: string | null) => (value?.startsWith("/") && !value.startsWith("//") ? value : "/dashboard");
+
 const schema = z.object({ email: z.email(), password: z.string().min(1) });
 type Values = z.infer<typeof schema>;
 
@@ -36,7 +39,7 @@ function LoginForm() {
     try {
       const { access_token } = await api<Token>("/auth/login", { method: "POST", body: values });
       await signIn(access_token);
-      router.push("/dashboard");
+      router.push(safeNext(params.get("next")));
     } catch (error) {
       setFormError(errorText(error, t("state.errorBody")));
     }
@@ -48,12 +51,12 @@ function LoginForm() {
     try {
       const { access_token } = await api<Token>("/auth/demo", { method: "POST" });
       await signIn(access_token);
-      router.push("/dashboard");
+      router.replace(safeNext(params.get("next")));
     } catch (error) {
       setFormError(errorText(error, t("state.errorBody")));
       setDemoBusy(false);
     }
-  }, [router, signIn, t]);
+  }, [router, signIn, t, params]);
 
   useEffect(() => {
     if (params.get("demo") && !autoStarted.current) {
@@ -61,6 +64,16 @@ function LoginForm() {
       void demo();
     }
   }, [params, demo]);
+
+  // Opening the demo automatically: show progress, not a sign-in form nobody needs to fill in.
+  if (params.get("demo") && !formError) {
+    return (
+      <div className="flex flex-col items-center gap-3 text-center" role="status">
+        <Sprout className="size-8 animate-pulse text-brand-2" />
+        <p className="text-lg font-medium">{t("auth.openingDemo")}</p>
+      </div>
+    );
+  }
 
   return (
     <>

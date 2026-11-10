@@ -16,6 +16,7 @@ from app.services.missions import ingest_results
 log = logging.getLogger("zerno.runner")
 
 SIM_SPEED_FACTOR = {"slow": 2.0, "normal": 1.0, "fast": 0.5}
+EMERGENCY_FLIGHT_FACTOR = 0.5
 CHARGE_STEP_PCT = 8
 CHARGE_TICK_SECONDS = 0.5
 
@@ -82,7 +83,8 @@ class MissionRunner:
                 start_battery=drone.battery_level,
                 reserve_pct=RESERVE_PCT,
                 photo_count=MAX_SAMPLE_PHOTOS,
-                duration_seconds=settings.sim_mission_seconds * SIM_SPEED_FACTOR.get(speed, 1.0),
+                duration_seconds=settings.sim_mission_seconds * SIM_SPEED_FACTOR.get(speed, 1.0)
+                * (EMERGENCY_FLIGHT_FACTOR if data.get("emergency_id") else 1.0),
                 tick_seconds=settings.sim_tick_seconds,
             )
 

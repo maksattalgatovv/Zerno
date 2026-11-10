@@ -26,25 +26,22 @@ const TILES = {
   },
 };
 
+/** Leaflet measures itself once, but layout can settle later, especially on phones. */
 function FitBounds({ points }: { points: LatLng[] }) {
   const map = useMap();
   const key = JSON.stringify(points);
   useEffect(() => {
-    if (points.length) map.fitBounds(L.latLngBounds(points), { padding: [24, 24], maxZoom: 16 });
+    const fit = () => {
+      map.invalidateSize();
+      if (points.length) map.fitBounds(L.latLngBounds(points), { padding: [24, 24], maxZoom: 16 });
+    };
+    fit();
+    const observer = new ResizeObserver(fit);
+    observer.observe(map.getContainer());
+    return () => observer.disconnect();
     // The serialised key is what should trigger a refit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, map]);
-  return null;
-}
-
-/** Leaflet measures itself once. Layout can settle later, which would leave grey gaps. */
-function KeepSized() {
-  const map = useMap();
-  useEffect(() => {
-    const observer = new ResizeObserver(() => map.invalidateSize());
-    observer.observe(map.getContainer());
-    return () => observer.disconnect();
-  }, [map]);
   return null;
 }
 
@@ -56,7 +53,6 @@ function BaseMap({ points, base = "satellite", className, children }: {
     <div className={cn("isolate overflow-hidden rounded-lg border bg-muted", className)}>
       <MapContainer center={first} zoom={14} className="h-full w-full bg-muted" scrollWheelZoom>
         <TileLayer key={base} {...TILES[base]} maxZoom={19} />
-        <KeepSized />
         <FitBounds points={points} />
         {children}
       </MapContainer>

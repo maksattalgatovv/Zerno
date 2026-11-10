@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from app.api import analyses, auth, drones, farms, misc
+from app.api import analyses, auth, drones, emergencies, farms, livestock, misc
 from app.core.config import get_settings
 from app.core.errors import install_error_handlers
 from app.db.session import SessionLocal
@@ -40,7 +40,7 @@ app.add_middleware(
 )
 install_error_handlers(app)
 
-for module in (auth, farms, drones, analyses, misc):
+for module in (auth, farms, drones, analyses, emergencies, livestock, misc):
     app.include_router(module.router, prefix="/api")
 
 # Only the public/ subtree is served. Generated reports live outside it.

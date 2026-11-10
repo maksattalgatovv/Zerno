@@ -12,7 +12,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="grid min-h-screen lg:grid-cols-[1fr_1.1fr]">
       <aside className="hidden flex-col justify-between bg-brand p-10 text-white lg:flex">
-        <Link href="/"><Logo light /></Link>
+        <Link href="/about"><Logo light /></Link>
         <div>
           <p className="max-w-md text-3xl leading-tight font-semibold tracking-tight">{t("auth.sideTitle")}</p>
           <p className="mt-3 max-w-md text-white/75">{t("auth.sideBody")}</p>
@@ -21,7 +21,7 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       </aside>
       <main className="flex flex-col p-4 md:p-8">
         <div className="flex items-center justify-between">
-          <Link href="/" className="lg:invisible"><Logo /></Link>
+          <Link href="/about" className="lg:invisible"><Logo /></Link>
           <LanguageSwitcher />
         </div>
         <div className="mx-auto flex w-full max-w-sm flex-1 flex-col justify-center py-8">{children}</div>

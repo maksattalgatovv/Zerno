@@ -1,6 +1,5 @@
 /** Centralised HTTP client. All backend calls go through `api`. */
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const TOKEN_KEY = "zerno.token";
 
 let language = "en";
@@ -47,7 +46,7 @@ async function send(path: string, { method = "GET", body, form }: Options): Prom
 
   let response: Response;
   try {
-    response = await fetch(`${BASE_URL}/api${path}`, {
+    response = await fetch(`/api${path}`, {
       method,
       headers,
       body: form ?? (body !== undefined ? JSON.stringify(body) : undefined),

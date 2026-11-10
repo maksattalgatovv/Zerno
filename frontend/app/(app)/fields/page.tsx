@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, MoreVertical, Pencil, Plus, Search, Sprout, Trash2 } from "lucide-react";
+import { Map, MapPin, MoreVertical, Pencil, Plus, Search, Sprout, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -90,7 +90,10 @@ function Content({ farm }: { farm: Farm }) {
   return (
     <>
       <PageHeader title={t("nav.fields")} description={t("fields.subtitle")}
-        actions={<Button onClick={() => setDialog({ open: true })}><Plus className="size-4" /> {t("fields.add")}</Button>} />
+        actions={<>
+          <Button asChild variant="outline"><Link href="/map"><Map className="size-4" /> {t("nav.map")}</Link></Button>
+          <Button onClick={() => setDialog({ open: true })}><Plus className="size-4" /> {t("fields.add")}</Button>
+        </>} />
 
       <div className="mb-5 flex flex-wrap items-center gap-3">
         <div className="relative min-w-52 flex-1 sm:max-w-sm">

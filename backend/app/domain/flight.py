@@ -3,13 +3,14 @@
 import math
 from dataclasses import dataclass
 
-from app.domain.geo import LatLng, lawnmower_route, path_length_m
+from app.domain.geo import METERS_PER_DEG_LAT, LatLng, lawnmower_route, path_length_m
 
 BATTERY_PCT_PER_KM = 2.2
 RESERVE_PCT = 20
 MAX_ALTITUDE_M = 120
 CRUISE_SPEED_MPS = 10.0
 MAX_SAMPLE_PHOTOS = 8
+ORBIT_RADIUS_M = 60
 
 
 @dataclass
@@ -18,6 +19,28 @@ class FlightEstimate:
     distance_m: float
     duration_min: float
     battery_needed: int
+
+
+def orbit_route(target: LatLng, radius_m: float = ORBIT_RADIUS_M, points: int = 8) -> list[LatLng]:
+    """A small circle around one point: how a drone inspects a location."""
+    dlat = radius_m / METERS_PER_DEG_LAT
+    dlng = dlat / math.cos(math.radians(target[0]))
+    return [
+        (target[0] + dlat * math.cos(2 * math.pi * i / points),
+         target[1] + dlng * math.sin(2 * math.pi * i / points))
+        for i in range(points + 1)
+    ]
+
+
+def estimate_orbit(target: LatLng, home: LatLng, altitude_m: float) -> FlightEstimate:
+    route = orbit_route(target)
+    distance = path_length_m([home, *route, home])
+    return FlightEstimate(
+        route=route,
+        distance_m=round(distance),
+        duration_min=round(distance / CRUISE_SPEED_MPS / 60, 1),
+        battery_needed=math.ceil(distance / 1000 * BATTERY_PCT_PER_KM),
+    )
 
 
 def line_spacing_m(altitude_m: float) -> float:

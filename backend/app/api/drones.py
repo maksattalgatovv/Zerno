@@ -60,7 +60,7 @@ def plan_mission(body: schemas.MissionPlanIn, user: CurrentUser, db: Db, lang: L
     field = owned_field(db, user, body.field_id)
     if drone.farm_id != field.farm_id:
         raise ApiError(404, "not_found")
-    return mission_out(service.plan_mission(db, drone, field, body.altitude_m), lang)
+    return mission_out(service.plan_mission(db, drone, field, body.altitude_m, body.purpose), lang)
 
 
 @router.get("/missions/{mission_id}", response_model=schemas.MissionDetailOut)

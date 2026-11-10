@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     # Storage
     storage_backend: str = "local"  # local | s3
     storage_dir: Path = BACKEND_DIR / "storage"
-    public_api_url: str = "http://localhost:8000"
+    public_api_url: str = ""  # empty: same origin, through the frontend proxy
     max_upload_mb: int = 10
     s3_bucket: str | None = None
     s3_endpoint_url: str | None = None

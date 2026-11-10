@@ -1,19 +1,16 @@
 "use client";
 
-import { Bell, CheckCheck, LogOut, Menu, Settings } from "lucide-react";
+import { Bell, CheckCheck, LogOut, Settings } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
-import { SidebarContent } from "@/components/layout/sidebar";
 import { DemoBadge } from "@/components/shared/ui";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useNotifications, useReadNotification } from "@/lib/api/hooks";
 import type { Notification } from "@/lib/api/types";
 import { useFormat } from "@/lib/hooks/use-format";
@@ -87,21 +84,11 @@ export function Topbar() {
   const { t } = useT();
   const { user, signOut } = useAuth();
   const { farm, farms, selectFarm } = useFarm();
-  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-2 border-b bg-card px-4 lg:px-6">
-      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t("nav.main")}><Menu className="size-5" /></Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
-          <SheetTitle className="sr-only">{t("nav.main")}</SheetTitle>
-          <SidebarContent onNavigate={() => setMenuOpen(false)} />
-        </SheetContent>
-      </Sheet>
-
-      {farm && (
+      {farm && farms.length === 1 && <span className="min-w-0 truncate font-semibold">{farm.name}</span>}
+      {farm && farms.length > 1 && (
         <Select value={farm.id} onValueChange={selectFarm}>
           <SelectTrigger className="w-44 min-w-0 sm:w-60" aria-label={t("topbar.farm")}><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -110,6 +97,9 @@ export function Topbar() {
         </Select>
       )}
       {user?.is_demo && <DemoBadge label={t("topbar.demoAccount")} tip={t("topbar.demoTip")} className="hidden sm:inline-flex" />}
+      {user?.is_demo && (
+        <Button variant="link" size="sm" className="hidden px-1 text-brand-2 md:inline-flex" onClick={signOut}>{t("topbar.ownAccount")}</Button>
+      )}
 
       <div className="ml-auto flex items-center gap-1">
         <LanguageSwitcher />

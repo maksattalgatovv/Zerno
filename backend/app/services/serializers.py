@@ -77,6 +77,7 @@ def mission_out(mission: m.DroneMission, lang: str) -> schemas.MissionOut:
     position = data.get("position")
     return schemas.MissionOut(
         id=mission.id,
+        purpose=data.get("purpose", "survey"),
         drone_id=mission.drone_id,
         drone_model=mission.drone.model,
         field_id=mission.field_id,
@@ -105,6 +106,10 @@ def mission_out(mission: m.DroneMission, lang: str) -> schemas.MissionOut:
                 code=c["code"], label=t(f"preflight.{c['code']}", lang, **c["params"]), passed=c["passed"]
             )
             for c in data.get("preflight", [])
+        ],
+        livestock_counts=[
+            schemas.LivestockCountOut(**{**c, "group_name": t(c["group_name"], lang)})
+            for c in data.get("livestock_counts", [])
         ],
     )
 
